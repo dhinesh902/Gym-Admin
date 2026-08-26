@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased text-slate-800 bg-background dark:bg-dark dark:text-slate-100;
+  }
+  
+  body {
+    @apply min-h-screen overflow-x-hidden;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-white/20 dark:border-slate-800/50 shadow-sm;
+  }
+  
+  .card {
+    @apply bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-slate-100 dark:border-slate-800;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-orange-600 shadow-md shadow-primary/20;
+  }
+
+  .btn-secondary {
+    @apply btn bg-secondary text-white hover:bg-orange-500 shadow-md shadow-secondary/20;
+  }
+
+  .btn-outline {
+    @apply btn border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-400 dark:bg-slate-600;
+}
