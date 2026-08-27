@@ -50,9 +50,11 @@ const navGroups = [
   }
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, closeSidebar }) => {
   return (
-    <aside className="w-64 bg-gradient-to-b from-primary to-secondary border-r-0 flex-shrink-0 hidden lg:flex flex-col h-screen sticky top-0 transition-all duration-300 text-white">
+    <aside
+      className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-primary to-secondary border-r-0 flex-shrink-0 flex flex-col h-screen transition-transform duration-300 text-white shadow-2xl lg:shadow-none ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+    >
 
       {/* Brand Header */}
       <div className="h-20 flex items-center px-6 border-b border-white/10">
@@ -79,6 +81,7 @@ const Sidebar = () => {
                 <NavLink
                   key={item.name}
                   to={item.path}
+                  onClick={closeSidebar}
                   className={({ isActive }) =>
                     `flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${isActive
                       ? 'bg-white text-primary shadow-md shadow-black/5'
