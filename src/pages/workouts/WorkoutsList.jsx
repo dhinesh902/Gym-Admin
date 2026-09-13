@@ -2,20 +2,29 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Dumbbell, PlayCircle } from 'lucide-react';
 import { DataTable } from '../../components/tables/DataTable';
-
-const MOCK_WORKOUTS = [
-  { id: 'WKT-01', name: 'Beginner Full Body', category: 'Strength', level: 'Beginner', duration: '45 mins', exercises: 8, creator: 'Mike Johnson' },
-  { id: 'WKT-02', name: 'Advanced Core Crusher', category: 'Core', level: 'Advanced', duration: '30 mins', exercises: 6, creator: 'Sarah Davis' },
-  { id: 'WKT-03', name: 'HIIT Cardio Blast', category: 'Cardio', level: 'Intermediate', duration: '40 mins', exercises: 10, creator: 'Emily Chen' },
-  { id: 'WKT-04', name: 'Hypertrophy Push', category: 'Strength', level: 'Advanced', duration: '60 mins', exercises: 7, creator: 'Mike Johnson' },
-  { id: 'WKT-05', name: 'Yoga for Recovery', category: 'Flexibility', level: 'All Levels', duration: '45 mins', exercises: 12, creator: 'Sarah Davis' },
-];
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { workoutsApi, toCollection } from '../../services/api';
+import { getApiErrorMessage } from '../../services/apiClient';
 
 const WorkoutsList = () => {
   const navigate = useNavigate();
+  const { data, isLoading, isError } = useQuery({ queryKey: ['workouts'], queryFn: workoutsApi.list, onError: error => toast.error(getApiErrorMessage(error, 'Unable to load workouts.')) });
+  const workouts = toCollection(data, ['workouts', 'items']);
+  const queryClient = useQueryClient();
+
+  const deleteWorkout = useMutation({
+    mutationFn: workoutsApi.remove,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
+      toast.success('Workout deleted successfully!');
+    },
+    onError: error => toast.error(getApiErrorMessage(error, 'Unable to delete workout.')),
+  });
+
   const columns = useMemo(() => [
     { 
-      accessorKey: 'name', 
+      accessorKey: 'title', 
       header: 'Workout Name', 
       cell: info => (
         <div className="flex items-center gap-3">
@@ -27,26 +36,25 @@ const WorkoutsList = () => {
       ) 
     },
     { 
-      accessorKey: 'category', 
-      header: 'Category',
+      accessorKey: 'targetmuscle', 
+      header: 'Target Muscle',
       cell: info => <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md text-xs font-medium">{info.getValue()}</span>
     },
-    { accessorKey: 'level', header: 'Level' },
-    { accessorKey: 'duration', header: 'Duration' },
-    { accessorKey: 'exercises', header: 'Exercises' },
-    { accessorKey: 'creator', header: 'Created By' },
+    { accessorKey: 'difficultlevel', header: 'Level' },
+    { accessorKey: 'duration', header: 'Duration (min)' },
+    { accessorKey: 'description', header: 'Description', cell: info => <div className="max-w-[200px] truncate">{info.getValue()}</div> },
     {
       id: 'actions',
       header: 'Actions',
-      cell: () => (
+      cell: info => (
         <div className="flex items-center gap-2">
           <button className="p-1.5 text-slate-400 hover:text-primary transition-colors" title="View/Assign"><PlayCircle className="h-4 w-4" /></button>
-          <button className="p-1.5 text-slate-400 hover:text-secondary transition-colors" title="Edit"><Edit className="h-4 w-4" /></button>
-          <button className="p-1.5 text-slate-400 hover:text-danger transition-colors" title="Delete"><Trash2 className="h-4 w-4" /></button>
+          <button onClick={() => navigate(`/workouts/edit/${info.row.original.id}`)} className="p-1.5 text-slate-400 hover:text-secondary transition-colors" title="Edit"><Edit className="h-4 w-4" /></button>
+          <button onClick={() => { if(window.confirm('Delete workout?')) deleteWorkout.mutate(info.row.original.id); }} disabled={deleteWorkout.isPending} className="p-1.5 text-slate-400 hover:text-danger transition-colors" title="Delete"><Trash2 className="h-4 w-4" /></button>
         </div>
       ),
     }
-  ], []);
+  ], [navigate, deleteWorkout]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -60,7 +68,9 @@ const WorkoutsList = () => {
         </button>
       </div>
 
-      <DataTable columns={columns} data={MOCK_WORKOUTS} searchPlaceholder="Search workouts by name or category..." />
+      <DataTable columns={columns} data={workouts} searchPlaceholder="Search workouts by name or category..." />
+      {isLoading && <p className="text-sm text-slate-500">Loading workouts...</p>}
+      {isError && <p className="text-sm text-danger">Unable to load workouts.</p>}
     </div>
   );
 };

@@ -3,16 +3,21 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { Save, X, Banknote, QrCode } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { paymentsApi } from '../../services/api';
+import { getApiErrorMessage } from '../../services/apiClient';
 
 const AddPayment = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const createPayment = useMutation({
+    mutationFn: paymentsApi.create,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['payments'] }); queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] }); toast.success('Payment recorded successfully!'); navigate('/payments'); },
+    onError: error => toast.error(getApiErrorMessage(error, 'Unable to record payment.')),
+  });
 
-  const onSubmit = (data) => {
-    console.log(data);
-    toast.success('Payment recorded successfully!');
-    navigate('/payments');
-  };
+  const onSubmit = (data) => createPayment.mutate({ memberId: Number(data.memberId), amount: Number(data.amount), date: data.paymentDate, status: data.status || 'Completed' });
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

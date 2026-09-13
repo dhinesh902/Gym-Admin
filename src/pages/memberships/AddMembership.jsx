@@ -3,16 +3,29 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { Save, X, CreditCard, AlignLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import apiClient, { getApiErrorMessage } from '../../services/apiClient';
 
 const AddMembership = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { register, handleSubmit, formState: { errors } } = useForm();
+  
+  const createPlan = useMutation({
+    mutationFn: async (payload) => {
+      const response = await apiClient.post('/plans/add', payload);
+      return response.data;
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['plans'] }); toast.success('Membership Plan added successfully!'); navigate('/memberships'); },
+    onError: error => toast.error(getApiErrorMessage(error, 'Unable to create membership plan.')),
+  });
 
-  const onSubmit = (data) => {
-    console.log(data);
-    toast.success('Membership Plan added successfully!');
-    navigate('/memberships');
-  };
+  const onSubmit = (data) => createPlan.mutate({ 
+    name: data.planName, 
+    durationInMonths: Number(data.duration), 
+    price: Number(data.price), 
+    description: data.description 
+  });
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

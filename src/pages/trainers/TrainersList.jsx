@@ -1,21 +1,29 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, MoreHorizontal, Edit, Trash2, Eye, Plus, Star } from 'lucide-react';
+import { Download, Edit, Trash2, Eye, Plus } from 'lucide-react';
 import { DataTable } from '../../components/tables/DataTable';
-
-const MOCK_TRAINERS = [
-  { id: 'TRN-101', name: 'Mike Johnson', specialty: 'Strength & Conditioning', members: 24, status: 'Active', shift: 'Morning' },
-  { id: 'TRN-102', name: 'Sarah Davis', specialty: 'Yoga & Flexibility', members: 30, status: 'Active', shift: 'Evening' },
-  { id: 'TRN-103', name: 'David Lee', specialty: 'CrossFit', members: 18, status: 'Active', shift: 'Morning' },
-  { id: 'TRN-104', name: 'Emily Chen', specialty: 'Cardio & HIIT', members: 22, status: 'On Leave', shift: 'Evening' },
-];
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { trainersApi, toCollection } from '../../services/api';
+import { getApiErrorMessage } from '../../services/apiClient';
 
 const TrainersList = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { data, isLoading, isError } = useQuery({ queryKey: ['trainers'], queryFn: trainersApi.list });
+  const trainers = toCollection(data, ['trainers', 'items']);
+  const deleteTrainer = useMutation({
+    mutationFn: trainersApi.remove,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trainers'] });
+      toast.success('Trainer deleted successfully!');
+    },
+    onError: error => toast.error(getApiErrorMessage(error, 'Unable to delete trainer.')),
+  });
 
   const columns = useMemo(() => [
     {
-      accessorKey: 'name',
+      accessorKey: 'fullname',
       header: 'Trainer',
       cell: info => (
         <div className="flex items-center gap-3">
@@ -30,16 +38,16 @@ const TrainersList = () => {
       ),
     },
     {
-      accessorKey: 'specialty',
+      accessorKey: 'speciality',
       header: 'Specialty',
     },
     {
-      accessorKey: 'members',
-      header: 'Assigned Members',
+      accessorKey: 'experience',
+      header: 'Experience',
       cell: info => <span className="text-slate-700 dark:text-slate-300 font-medium">{info.getValue()}</span>,
     },
     {
-      accessorKey: 'shift',
+      accessorKey: 'shifttiming',
       header: 'Shift',
     },
     {
@@ -61,21 +69,21 @@ const TrainersList = () => {
     {
       id: 'actions',
       header: 'Actions',
-      cell: () => (
+      cell: info => (
         <div className="flex items-center gap-2">
-          <button className="p-1.5 text-slate-400 hover:text-primary transition-colors" title="View Details">
+          <button onClick={() => navigate(`/trainers/${info.row.original.id}`)} className="p-1.5 text-slate-400 hover:text-primary transition-colors" title="View Details">
             <Eye className="h-4 w-4" />
           </button>
-          <button className="p-1.5 text-slate-400 hover:text-secondary transition-colors" title="Edit">
+          <button onClick={() => navigate(`/trainers/edit/${info.row.original.id}`)} className="p-1.5 text-slate-400 hover:text-secondary transition-colors" title="Edit">
             <Edit className="h-4 w-4" />
           </button>
-          <button className="p-1.5 text-slate-400 hover:text-danger transition-colors" title="Delete">
+          <button onClick={() => deleteTrainer.mutate(info.row.original.id)} className="p-1.5 text-slate-400 hover:text-danger transition-colors" title="Delete" disabled={deleteTrainer.isPending}>
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
       ),
     }
-  ], []);
+  ], [deleteTrainer, navigate]);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -99,9 +107,11 @@ const TrainersList = () => {
 
       <DataTable
         columns={columns}
-        data={MOCK_TRAINERS}
+          data={trainers}
         searchPlaceholder="Search trainers by name or specialty..."
       />
+        {isLoading && <p className="text-sm text-slate-500">Loading trainers...</p>}
+        {isError && <p className="text-sm text-danger">Unable to load trainers.</p>}
     </div>
   );
 };

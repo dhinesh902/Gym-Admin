@@ -7,8 +7,11 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend
 } from 'recharts';
+import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { dashboardApi } from '../../services/api';
+import { getApiErrorMessage } from '../../services/apiClient';
 
-// --- MOCK DATA ---
 const revenueData = [
   { name: 'Jan', revenue: 45000 },
   { name: 'Feb', revenue: 52000 },
@@ -58,6 +61,15 @@ const StatCard = ({ title, value, icon: Icon, trend, trendUp, colorClass }) => (
 );
 
 const Dashboard = () => {
+  const { data: stats = {}, isLoading } = useQuery({
+    queryKey: ['dashboard', 'stats'],
+    queryFn: dashboardApi.stats,
+    onError: (error) => toast.error(getApiErrorMessage(error, 'Unable to load dashboard statistics.')),
+  });
+  const totalMembers = stats.totalMembers ?? stats.membersCount ?? 0;
+  const activeMembers = stats.activeMembers ?? 0;
+  const membersInside = stats.membersInside ?? stats.currentAttendance ?? 0;
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
@@ -73,11 +85,10 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <StatCard title="Total Members" value="1,248" icon={Users} trend="12%" trendUp={true} colorClass="bg-primary" />
-        <StatCard title="Active Members" value="1,032" icon={UserCheck} trend="5.2%" trendUp={true} colorClass="bg-secondary" />
-        <StatCard title="Today's Revenue" value="₹24,500" icon={IndianRupee} trend="8%" trendUp={true} colorClass="bg-accent" />
-        <StatCard title="Members Inside" value="42" icon={Activity} trend="2" trendUp={false} colorClass="bg-warning" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <StatCard title="Total Members" value={isLoading ? '...' : totalMembers.toLocaleString()} icon={Users} trend="12%" trendUp={true} colorClass="bg-primary" />
+        <StatCard title="Active Members" value={isLoading ? '...' : activeMembers.toLocaleString()} icon={UserCheck} trend="5.2%" trendUp={true} colorClass="bg-secondary" />
+        <StatCard title="Members Inside" value={isLoading ? '...' : membersInside.toLocaleString()} icon={Activity} trend="2" trendUp={false} colorClass="bg-warning" />
       </div>
 
       {/* Charts Section */}

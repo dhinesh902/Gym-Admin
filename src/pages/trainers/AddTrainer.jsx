@@ -1,26 +1,67 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import { Save, X, User, Briefcase, Award, Upload } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Save, X, User, Briefcase, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { trainersApi } from '../../services/api';
+import { getApiErrorMessage } from '../../services/apiClient';
 
 const AddTrainer = () => {
   const navigate = useNavigate();
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { id } = useParams();
+  const queryClient = useQueryClient();
+  const isEdit = Boolean(id);
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm();
+  const { data: trainer, isLoading: isLoadingTrainer } = useQuery({
+    queryKey: ['trainer', id],
+    queryFn: () => trainersApi.get(id),
+    enabled: isEdit,
+  });
 
-  const onSubmit = (data) => {
-    console.log(data);
-    toast.success('Trainer added successfully!');
-    navigate('/trainers');
+  React.useEffect(() => {
+    if (trainer) reset(trainer);
+  }, [reset, trainer]);
+
+  const saveTrainer = useMutation({
+    mutationFn: (data) => isEdit ? trainersApi.update({ id, ...data }) : trainersApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trainers'] });
+      toast.success(isEdit ? 'Trainer updated successfully!' : 'Trainer added successfully!');
+      navigate('/trainers');
+    },
+    onError: error => toast.error(getApiErrorMessage(error, isEdit ? 'Unable to update trainer.' : 'Unable to add trainer.')),
+  });
+
+  const onSubmit = (data) => saveTrainer.mutate(data);
+
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    return `http://localhost:3000${path.startsWith('/') ? path : `/${path}`}`;
   };
+
+  const profilePhotoObj = watch('profilephoto');
+  const existingPhoto = isEdit && trainer?.profilephoto;
+  
+  let photoPreview = null;
+  if (profilePhotoObj && typeof profilePhotoObj !== 'string' && profilePhotoObj.length > 0) {
+    try {
+      photoPreview = URL.createObjectURL(profilePhotoObj[0]);
+    } catch (e) {
+      console.error(e);
+    }
+  } else if (existingPhoto) {
+    photoPreview = getImageUrl(existingPhoto);
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Add New Trainer</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Register a new gym trainer or coach.</p>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{isEdit ? 'Edit Trainer' : 'Add New Trainer'}</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{isEdit ? 'Update trainer details.' : 'Register a new gym trainer or coach.'}</p>
         </div>
         <div className="flex gap-2">
           <button 
@@ -31,11 +72,12 @@ const AddTrainer = () => {
             <X className="h-4 w-4" /> Cancel
           </button>
           <button 
-            type="submit"
+                      type="submit"
             form="add-trainer-form"
+            disabled={saveTrainer.isPending || isLoadingTrainer}
             className="btn-primary text-sm flex items-center gap-2"
           >
-            <Save className="h-4 w-4" /> Save Trainer
+            <Save className="h-4 w-4" /> {isEdit ? 'Update Trainer' : 'Save Trainer'}
           </button>
         </div>
       </div>
@@ -51,22 +93,34 @@ const AddTrainer = () => {
           <div className="p-6">
             <div className="flex flex-col md:flex-row gap-8">
               <div className="flex flex-col items-center gap-3">
-                <div className="h-32 w-32 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400">
-                  <Upload className="h-8 w-8 mb-2" />
-                  <span className="text-xs">Upload Photo</span>
-                </div>
-                <button type="button" className="text-sm font-medium text-primary hover:underline">Change Photo</button>
+                <label className="relative h-32 w-32 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 cursor-pointer overflow-hidden group">
+                  {photoPreview ? (
+                    <>
+                      <img src={photoPreview} alt="Profile Preview" className="h-full w-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Upload className="h-6 w-6 text-white" />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-8 w-8 mb-2" />
+                      <span className="text-xs">Upload Photo</span>
+                    </>
+                  )}
+                  <input type="file" accept="image/*" {...register('profilephoto')} className="hidden" />
+                </label>
+                <span className="text-sm font-medium text-primary">Change Photo</span>
               </div>
 
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Full Name *</label>
                   <input 
-                    {...register('fullName', { required: 'Full name is required' })} 
+                    {...register('fullname', { required: 'Full name is required' })} 
                     className="input-field" 
                     placeholder="e.g. Mike Johnson"
                   />
-                  {errors.fullName && <p className="text-xs text-danger mt-1">{errors.fullName.message}</p>}
+                  {errors.fullname && <p className="text-xs text-danger mt-1">{errors.fullname.message}</p>}
                 </div>
                 
                 <div>
@@ -78,6 +132,17 @@ const AddTrainer = () => {
                     placeholder="mike@example.com"
                   />
                 </div>
+
+                {!isEdit && <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Password *</label>
+                  <input
+                    type="password"
+                    {...register('password', { required: 'Password is required' })}
+                    className="input-field"
+                    placeholder="Set a password"
+                  />
+                  {errors.password && <p className="text-xs text-danger mt-1">{errors.password.message}</p>}
+                </div>}
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Phone Number *</label>
@@ -92,7 +157,7 @@ const AddTrainer = () => {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date of Birth</label>
                   <input 
                     type="date"
-                    {...register('dob')} 
+                    {...register('dateofbirth')} 
                     className="input-field text-slate-500" 
                   />
                 </div>
@@ -110,7 +175,7 @@ const AddTrainer = () => {
           <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Specialty *</label>
-              <select {...register('specialty', { required: 'Specialty is required' })} className="input-field">
+              <select {...register('speciality', { required: 'Specialty is required' })} className="input-field">
                 <option value="">Select Specialty</option>
                 <option value="Strength & Conditioning">Strength & Conditioning</option>
                 <option value="Yoga & Flexibility">Yoga & Flexibility</option>
@@ -125,7 +190,7 @@ const AddTrainer = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Shift Timing</label>
-              <select {...register('shift')} className="input-field">
+              <select {...register('shifttiming')} className="input-field">
                 <option value="Morning">Morning (6 AM - 2 PM)</option>
                 <option value="Evening">Evening (2 PM - 10 PM)</option>
                 <option value="Full Day">Full Day</option>
@@ -133,7 +198,7 @@ const AddTrainer = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Monthly Salary (₹)</label>
-              <input type="number" {...register('salary')} className="input-field" placeholder="25000" />
+              <input type="number" {...register('monthlysalary')} className="input-field" placeholder="25000" />
             </div>
           </div>
         </div>

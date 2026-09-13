@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   flexRender,
   getCoreRowModel,
@@ -13,9 +13,48 @@ export function DataTable({ columns, data, searchPlaceholder = "Search..." }) {
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
+  const enhancedColumns = useMemo(() => {
+    const mappedColumns = columns.map(col => {
+      if (col.accessorKey === 'status' || col.id === 'status') {
+        return {
+          ...col,
+          cell: (info) => {
+            const val = info.getValue() || 'Inactive';
+            const statusStr = val.toString().toLowerCase();
+            let colorClass = 'bg-slate-100 text-slate-700';
+            
+            if (statusStr === 'active') {
+              colorClass = 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+            } else if (statusStr === 'inactive') {
+              colorClass = 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+            }
+            
+            return (
+              <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${colorClass}`}>
+                {val}
+              </span>
+            );
+          }
+        };
+      }
+      return col;
+    });
+
+    const hasSno = columns.some(c => c.id === 'sno' || c.header === 'S.No');
+    if (hasSno) return mappedColumns;
+
+    const snoColumn = {
+      id: 'sno',
+      header: 'S.No',
+      cell: (info) => <span className="text-slate-500 font-medium">{info.row.index + 1}</span>,
+    };
+
+    return [snoColumn, ...mappedColumns];
+  }, [columns]);
+
   const table = useReactTable({
     data,
-    columns,
+    columns: enhancedColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),

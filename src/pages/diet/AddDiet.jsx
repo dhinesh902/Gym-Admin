@@ -1,25 +1,57 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Save, X, Utensils, Apple } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { dietsApi } from '../../services/api';
+import { getApiErrorMessage } from '../../services/apiClient';
 
 const AddDiet = () => {
   const navigate = useNavigate();
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { id } = useParams();
+  const isEdit = Boolean(id);
+  const queryClient = useQueryClient();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  
+  const { data: dietsList } = useQuery({ queryKey: ['diets'], queryFn: dietsApi.list });
+  
+  React.useEffect(() => {
+    if (isEdit && dietsList) {
+      const diet = dietsList.find(d => d.id === Number(id) || d.id === id);
+      if (diet) reset(diet);
+    }
+  }, [isEdit, id, dietsList, reset]);
+
+  const saveDiet = useMutation({
+    mutationFn: (data) => isEdit ? dietsApi.update({ id, ...data }) : dietsApi.create(data),
+    onSuccess: () => { 
+      queryClient.invalidateQueries({ queryKey: ['diets'] }); 
+      toast.success(isEdit ? 'Diet Plan updated successfully!' : 'Diet Plan created successfully!'); 
+      navigate('/diet'); 
+    },
+    onError: error => toast.error(getApiErrorMessage(error, isEdit ? 'Unable to update diet plan.' : 'Unable to create diet plan.')),
+  });
 
   const onSubmit = (data) => {
-    console.log(data);
-    toast.success('Diet Plan created successfully!');
-    navigate('/diet');
+    saveDiet.mutate({ 
+      title: data.title, 
+      dietgoal: data.dietgoal, 
+      calories: Number(data.calories),
+      diettype: data.diettype,
+      morning: data.morning,
+      lunch: data.lunch,
+      dinner: data.dinner,
+      restrictions: data.restrictions,
+    });
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Create Diet Plan</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Design a new nutritional plan.</p>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{isEdit ? 'Edit Diet Plan' : 'Create Diet Plan'}</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{isEdit ? 'Update the nutritional plan.' : 'Design a new nutritional plan.'}</p>
         </div>
         <div className="flex gap-2">
           <button 
@@ -32,9 +64,10 @@ const AddDiet = () => {
           <button 
             type="submit"
             form="add-diet-form"
+            disabled={saveDiet.isPending}
             className="btn-primary text-sm flex items-center gap-2"
           >
-            <Save className="h-4 w-4" /> Save Diet Plan
+            <Save className="h-4 w-4" /> {isEdit ? 'Update Diet Plan' : 'Save Diet Plan'}
           </button>
         </div>
       </div>
@@ -49,20 +82,20 @@ const AddDiet = () => {
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Plan Name *</label>
               <input 
-                {...register('planName', { required: 'Plan name is required' })} 
+                {...register('title', { required: 'Plan name is required' })} 
                 className="input-field" 
                 placeholder="e.g. Keto Weight Loss"
               />
-              {errors.planName && <p className="text-xs text-danger mt-1">{errors.planName.message}</p>}
+              {errors.title && <p className="text-xs text-danger mt-1">{errors.title.message}</p>}
             </div>
             
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Diet Goal</label>
-              <select {...register('goal')} className="input-field">
-                <option value="weight_loss">Weight Loss</option>
-                <option value="muscle_gain">Muscle Gain</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="detox">Detox</option>
+              <select {...register('dietgoal')} className="input-field">
+                <option value="Weight Loss">Weight Loss</option>
+                <option value="Muscle Building">Muscle Building</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Detox">Detox</option>
               </select>
             </div>
 
@@ -78,11 +111,12 @@ const AddDiet = () => {
             
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Diet Type</label>
-              <select {...register('dietType')} className="input-field">
-                <option value="vegetarian">Vegetarian</option>
-                <option value="non_vegetarian">Non-Vegetarian</option>
-                <option value="vegan">Vegan</option>
-                <option value="keto">Keto</option>
+              <select {...register('diettype')} className="input-field">
+                <option value="Vegetarian">Vegetarian</option>
+                <option value="Non-Vegetarian">Non-Vegetarian</option>
+                <option value="High Protein">High Protein</option>
+                <option value="Vegan">Vegan</option>
+                <option value="Keto">Keto</option>
               </select>
             </div>
           </div>
@@ -94,13 +128,31 @@ const AddDiet = () => {
             <h3 className="font-bold text-slate-800 dark:text-white">Meals & Restrictions</h3>
           </div>
           <div className="p-6 space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Meals Breakdown</label>
-              <textarea 
-                {...register('meals')} 
-                className="input-field min-h-[120px]" 
-                placeholder="Breakfast: Oats with milk and fruits&#10;Lunch: 2 Roti, Dal, Salad&#10;Dinner: Grilled Chicken, Veggies"
-              />
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Morning</label>
+                <textarea 
+                  {...register('morning')} 
+                  className="input-field min-h-[60px]" 
+                  placeholder="Breakfast details..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Lunch</label>
+                <textarea 
+                  {...register('lunch')} 
+                  className="input-field min-h-[60px]" 
+                  placeholder="Lunch details..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Dinner</label>
+                <textarea 
+                  {...register('dinner')} 
+                  className="input-field min-h-[60px]" 
+                  placeholder="Dinner details..."
+                />
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Restrictions / Foods to Avoid</label>

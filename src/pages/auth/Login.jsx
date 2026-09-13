@@ -4,15 +4,27 @@ import { useNavigate } from 'react-router-dom';
 import { Dumbbell, Mail, Lock, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import apiClient, { getApiErrorMessage } from '../../services/apiClient';
+import { API_ROUTES } from '../../services/apiRoutes';
 
 const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const onSubmit = (data) => {
-    if (data.email && data.password) {
+  const onSubmit = async (data) => {
+    setIsSubmitting(true);
+    try {
+      const response = await apiClient.post(API_ROUTES.auth.login, { email: data.email, password: data.password });
+      const { token, user } = response.data.data;
+      if (token) localStorage.setItem('gym_auth_token', token);
+      if (user) localStorage.setItem('gym_auth_user', JSON.stringify(user));
       toast.success('Welcome back!');
       navigate('/dashboard');
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Unable to sign in. Check your credentials.'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -167,9 +179,10 @@ const Login = () => {
                   <motion.div variants={itemVariants} className="pt-1">
                     <button
                       type="submit"
+                      disabled={isSubmitting}
                       className="w-full h-11 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-400 hover:to-rose-400 text-white text-base rounded-xl font-bold flex items-center justify-center gap-2 group shadow-[0_4px_20px_rgba(249,115,22,0.3)] hover:shadow-[0_8px_25px_rgba(249,115,22,0.4)] transition-all duration-300 transform hover:-translate-y-0.5"
                     >
-                      <span>Sign In</span>
+                      <span>{isSubmitting ? 'Signing in...' : 'Sign In'}</span>
                       <ArrowRight className="h-4 w-4 group-hover:translate-x-1.5 transition-transform duration-300" />
                     </button>
                   </motion.div>

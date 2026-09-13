@@ -2,17 +2,18 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Plus, Receipt } from 'lucide-react';
 import { DataTable } from '../../components/tables/DataTable';
-
-const MOCK_PAYMENTS = [
-  { id: 'INV-1001', member: 'Rahul Sharma', plan: 'Yearly Pro', amount: '₹12,000', method: 'Credit Card', date: '2023-10-15', status: 'Completed' },
-  { id: 'INV-1002', member: 'Sneha Patel', plan: 'Monthly', amount: '₹1,500', method: 'UPI', date: '2023-11-20', status: 'Completed' },
-  { id: 'INV-1003', member: 'Amit Kumar', plan: 'Quarterly', amount: '₹4,000', method: 'Cash', date: '2023-11-25', status: 'Pending' },
-  { id: 'INV-1004', member: 'Priya Singh', plan: 'Half Yearly', amount: '₹7,500', method: 'Bank Transfer', date: '2023-11-28', status: 'Completed' },
-  { id: 'INV-1005', member: 'Vikram Singh', plan: 'Personal Training', amount: '₹5,000', method: '--', date: '2023-12-01', status: 'Failed' },
-];
+import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { paymentsApi, toCollection } from '../../services/api';
+import { getApiErrorMessage } from '../../services/apiClient';
 
 const PaymentsList = () => {
   const navigate = useNavigate();
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['payments'], queryFn: paymentsApi.list,
+    onError: error => toast.error(getApiErrorMessage(error, 'Unable to load payments.')),
+  });
+  const payments = toCollection(data, ['payments', 'items']);
   const columns = useMemo(() => [
     { accessorKey: 'id', header: 'Invoice ID', cell: info => <span className="font-mono text-slate-500">{info.getValue()}</span> },
     { accessorKey: 'member', header: 'Member Name', cell: info => <div className="font-bold text-slate-800 dark:text-slate-200">{info.getValue()}</div> },
@@ -80,7 +81,9 @@ const PaymentsList = () => {
         </div>
       </div>
 
-      <DataTable columns={columns} data={MOCK_PAYMENTS} searchPlaceholder="Search by invoice ID or member name..." />
+      <DataTable columns={columns} data={payments} searchPlaceholder="Search by invoice ID or member name..." />
+      {isLoading && <p className="text-sm text-slate-500">Loading payments...</p>}
+      {isError && <p className="text-sm text-danger">Unable to load payments.</p>}
     </div>
   );
 };
