@@ -1,20 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Download, TrendingUp, Users, CreditCard } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, Legend
 } from 'recharts';
-
-const monthlyRevenue = [
-  { name: 'Jan', membership: 40000, PT: 15000 },
-  { name: 'Feb', membership: 45000, PT: 12000 },
-  { name: 'Mar', membership: 42000, PT: 18000 },
-  { name: 'Apr', membership: 55000, PT: 22000 },
-  { name: 'May', membership: 52000, PT: 20000 },
-  { name: 'Jun', membership: 60000, PT: 25000 },
-];
+import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { reportsApi } from '../../services/api';
+import { getApiErrorMessage } from '../../services/apiClient';
+import { downloadCsv } from '../../utils/exportCsv';
 
 const Reports = () => {
+  const [filter, setFilter] = useState('6months');
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['reports-analytics', filter],
+    queryFn: () => reportsApi.getAnalytics(filter),
+    onError: error => toast.error(getApiErrorMessage(error, 'Unable to load reports data.')),
+  });
+
+  if (isLoading) return <div className="p-8 text-center text-slate-500">Loading reports data...</div>;
+  if (isError || !data) return <div className="p-8 text-center text-danger">Failed to load reports data.</div>;
+
+  const { kpis, charts } = data;
+  const { totalRevenue = 0, newMembers = 0, retentionRate = 0 } = kpis || {};
+  const { revenueBreakdown = [], memberGrowthTrend = [] } = charts || {};
+
+  const handleExport = () => {
+    if (!revenueBreakdown || revenueBreakdown.length === 0) {
+      toast.error('No data available to export');
+      return;
+    }
+    downloadCsv(revenueBreakdown, `reports-analytics-${filter.replace(/\s+/g, '-').toLowerCase()}.csv`);
+    toast.success('Report exported successfully');
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
@@ -24,12 +44,16 @@ const Reports = () => {
           <p className="text-sm text-slate-500 dark:text-slate-400">Detailed financial and performance reports.</p>
         </div>
         <div className="flex gap-2">
-          <select className="input-field py-2 text-sm w-auto bg-white dark:bg-slate-900">
-            <option>Last 6 Months</option>
-            <option>This Year</option>
-            <option>Last Year</option>
+          <select 
+            value={filter} 
+            onChange={(e) => setFilter(e.target.value)}
+            className="input-field py-2 text-sm w-auto bg-white dark:bg-slate-900"
+          >
+            <option value="6months">Last 6 Months</option>
+            <option value="this-year">This Year</option>
+            <option value="last-year">Last Year</option>
           </select>
-          <button className="btn-primary text-sm flex items-center gap-2">
+          <button onClick={handleExport} className="btn-primary text-sm flex items-center gap-2">
             <Download className="h-4 w-4" /> Export Report
           </button>
         </div>
@@ -42,7 +66,7 @@ const Reports = () => {
           </div>
           <div>
             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Revenue (6m)</p>
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-white">₹4,26,000</h3>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-white">₹{(totalRevenue || 0).toLocaleString()}</h3>
           </div>
         </div>
         <div className="card p-5 flex items-center gap-4">
@@ -51,7 +75,7 @@ const Reports = () => {
           </div>
           <div>
             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">New Members (6m)</p>
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-white">142</h3>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{newMembers || 0}</h3>
           </div>
         </div>
         <div className="card p-5 flex items-center gap-4">
@@ -60,7 +84,7 @@ const Reports = () => {
           </div>
           <div>
             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Avg. Retention Rate</p>
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-white">84%</h3>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{retentionRate || 0}%</h3>
           </div>
         </div>
       </div>
@@ -71,14 +95,14 @@ const Reports = () => {
           <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Revenue Breakdown (Membership vs PT)</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyRevenue} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+              <BarChart data={revenueBreakdown} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
                 <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px' }} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
                 <Bar dataKey="membership" name="Memberships" stackId="a" fill="#F97316" radius={[0, 0, 4, 4]} />
-                <Bar dataKey="PT" name="Personal Training" stackId="a" fill="#FB923C" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="pt" name="Personal Training" stackId="a" fill="#FB923C" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -89,12 +113,12 @@ const Reports = () => {
           <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Member Growth Trend</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyRevenue} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <LineChart data={memberGrowthTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
                 <Tooltip contentStyle={{ borderRadius: '8px' }} />
-                <Line type="monotone" dataKey="membership" name="Total Members" stroke="#F97316" strokeWidth={3} dot={{r: 4, strokeWidth: 2}} activeDot={{r: 6}} />
+                <Line type="monotone" dataKey="members" name="Total Members" stroke="#F97316" strokeWidth={3} dot={{r: 4, strokeWidth: 2}} activeDot={{r: 6}} />
               </LineChart>
             </ResponsiveContainer>
           </div>

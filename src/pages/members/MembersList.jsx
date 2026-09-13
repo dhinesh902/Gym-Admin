@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Download, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
+import { UserPlus, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import { DataTable } from '../../components/tables/DataTable';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -89,13 +89,7 @@ const MembersList = () => {
           <p className="text-sm text-slate-500 dark:text-slate-400">Manage all your gym members here.</p>
         </div>
         <div className="flex gap-2">
-          <button className="btn-outline text-sm flex items-center gap-2">
-            <Download className="h-4 w-4" /> Export
-          </button>
-          <button
-            onClick={() => navigate('/members/add')}
-            className="btn-primary text-sm flex items-center gap-2"
-          >
+          <button onClick={() => navigate('/members/add')} className="btn-primary text-sm flex items-center gap-2">
             <UserPlus className="h-4 w-4" /> Add Member
           </button>
         </div>

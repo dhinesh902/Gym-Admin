@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Plus, Receipt } from 'lucide-react';
+import { Plus, Edit, Eye, Trash2 } from 'lucide-react';
 import { DataTable } from '../../components/tables/DataTable';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { paymentsApi, toCollection } from '../../services/api';
 import { getApiErrorMessage } from '../../services/apiClient';
@@ -17,8 +17,8 @@ const PaymentsList = () => {
   const columns = useMemo(() => [
     { accessorKey: 'id', header: 'Invoice ID', cell: info => <span className="font-mono text-slate-500">{info.getValue()}</span> },
     { accessorKey: 'member', header: 'Member Name', cell: info => <div className="font-bold text-slate-800 dark:text-slate-200">{info.getValue()}</div> },
-    { accessorKey: 'plan', header: 'Description' },
-    { accessorKey: 'amount', header: 'Amount', cell: info => <div className="font-bold text-primary">{info.getValue()}</div> },
+    { accessorKey: 'remarks', header: 'Description', cell: info => <div className="text-slate-600 dark:text-slate-400 max-w-[200px] line-clamp-2" title={info.getValue()}>{info.getValue()}</div> },
+    { accessorKey: 'amount', header: 'Amount', cell: info => <div className="font-bold text-primary">₹{info.getValue()}</div> },
     { accessorKey: 'method', header: 'Payment Method' },
     { accessorKey: 'date', header: 'Date', cell: info => <span className="text-slate-600 dark:text-slate-400">{info.getValue()}</span> },
     {
@@ -30,7 +30,7 @@ const PaymentsList = () => {
         if (status === 'Completed') colorClass = 'bg-accent/10 text-accent';
         if (status === 'Pending') colorClass = 'bg-warning/10 text-warning';
         if (status === 'Failed') colorClass = 'bg-danger/10 text-danger';
-        
+
         return (
           <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${colorClass}`}>
             {status}
@@ -41,13 +41,40 @@ const PaymentsList = () => {
     {
       id: 'actions',
       header: 'Actions',
-      cell: () => (
-        <button className="p-1.5 text-slate-400 hover:text-primary transition-colors flex items-center gap-1 text-xs font-medium">
-          <Receipt className="h-4 w-4" /> Receipt
-        </button>
-      ),
+      cell: ({ row }) => {
+        const id = row.original.id;
+        return (
+          <div className="flex gap-2">
+            <button onClick={() => navigate(`/payments/${id}`)} className="p-1.5 text-slate-400 hover:text-secondary transition-colors text-xs font-medium" title="View Details">
+              <Eye className="h-4 w-4" />
+            </button>
+            <button onClick={() => navigate(`/payments/edit/${id}`)} className="p-1.5 text-slate-400 hover:text-primary transition-colors text-xs font-medium" title="Edit">
+              <Edit className="h-4 w-4" />
+            </button>
+            <button onClick={() => handleDelete(id)} className="p-1.5 text-slate-400 hover:text-danger transition-colors text-xs font-medium" title="Delete">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        );
+      },
     }
   ], []);
+
+  const queryClient = useQueryClient();
+  const deleteMutation = useMutation({
+    mutationFn: paymentsApi.remove,
+    onSuccess: () => {
+      toast.success('Payment deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+    },
+    onError: error => toast.error(getApiErrorMessage(error, 'Unable to delete payment.')),
+  });
+
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this payment?')) {
+      deleteMutation.mutate(id);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -57,27 +84,9 @@ const PaymentsList = () => {
           <p className="text-sm text-slate-500 dark:text-slate-400">Track membership payments and transactions.</p>
         </div>
         <div className="flex gap-2">
-          <button className="btn-outline text-sm flex items-center gap-2">
-            <Download className="h-4 w-4" /> Export CSV
-          </button>
           <button onClick={() => navigate('/payments/add')} className="btn-primary text-sm flex items-center gap-2">
             <Plus className="h-4 w-4" /> Record Payment
           </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card p-5">
-          <p className="text-sm text-slate-500 font-medium">Total Revenue (This Month)</p>
-          <h3 className="text-2xl font-bold text-slate-800 dark:text-white mt-1">₹85,000</h3>
-        </div>
-        <div className="card p-5">
-          <p className="text-sm text-slate-500 font-medium">Pending Payments</p>
-          <h3 className="text-2xl font-bold text-warning mt-1">₹12,500</h3>
-        </div>
-        <div className="card p-5">
-          <p className="text-sm text-slate-500 font-medium">Successful Transactions</p>
-          <h3 className="text-2xl font-bold text-accent mt-1">142</h3>
         </div>
       </div>
 

@@ -10,16 +10,16 @@ const MembershipsList = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [editingPlan, setEditingPlan] = useState(null);
-  
+
   const fetchPlans = async () => {
     const response = await apiClient.post('/plans/get');
     return response.data.data || [];
   };
 
-  const { data: plans = [], isLoading, isError } = useQuery({ 
-    queryKey: ['plans'], 
-    queryFn: fetchPlans, 
-    onError: error => toast.error(getApiErrorMessage(error, 'Unable to load plans.')) 
+  const { data: plans = [], isLoading, isError } = useQuery({
+    queryKey: ['plans'],
+    queryFn: fetchPlans,
+    onError: error => toast.error(getApiErrorMessage(error, 'Unable to load plans.'))
   });
 
   const deletePlan = useMutation({
@@ -52,7 +52,7 @@ const MembershipsList = () => {
       deletePlan.mutate(id);
     }
   };
-  
+
   const columns = useMemo(() => [
     {
       accessorKey: 'name',
@@ -66,18 +66,18 @@ const MembershipsList = () => {
       cell: info => <div className="font-bold text-primary">{info.getValue()}</div>,
     },
     { accessorKey: 'description', header: 'Description' },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: info => {
-        const status = info.getValue() || 'Active';
-        return (
-          <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${status === 'Active' ? 'bg-accent/10 text-accent' : 'bg-slate-100 text-slate-500'}`}>
-            {status}
-          </span>
-        );
-      },
-    },
+    // {
+    //   accessorKey: 'status',
+    //   header: 'Status',
+    //   cell: info => {
+    //     const status = info.getValue() || 'Active';
+    //     return (
+    //       <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${status === 'Active' ? 'bg-accent/10 text-accent' : 'bg-slate-100 text-slate-500'}`}>
+    //         {status}
+    //       </span>
+    //     );
+    //   },
+    // },
     {
       id: 'actions',
       header: 'Actions',
@@ -111,14 +111,14 @@ const MembershipsList = () => {
       {editingPlan && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-slate-900/20 z-40 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setEditingPlan(null)}
           />
-          
+
           {/* Styled Edit Sidebar Modal matching Edit Trainer UI */}
           <div className="fixed top-0 right-0 h-full w-full max-w-3xl bg-slate-50 dark:bg-slate-900 z-50 shadow-2xl border-l border-slate-200 dark:border-slate-800 p-6 sm:p-8 flex flex-col overflow-y-auto animate-in slide-in-from-right duration-300">
-            
+
             {/* Top Bar matching AddTrainer */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
               <div>
@@ -129,7 +129,7 @@ const MembershipsList = () => {
                 <button onClick={() => setEditingPlan(null)} className="btn-outline text-sm flex items-center gap-2">
                   <X className="h-4 w-4" /> Cancel
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     editPlan.mutate({
                       id: editingPlan.id || editingPlan._id,
@@ -148,10 +148,10 @@ const MembershipsList = () => {
                 </button>
               </div>
             </div>
-            
+
             {/* Form Fields wrapped in cards matching AddTrainer structure */}
             <div className="space-y-6 flex-1">
-              
+
               {/* Section 1 */}
               <div className="card overflow-hidden bg-white dark:bg-surface-dark">
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">

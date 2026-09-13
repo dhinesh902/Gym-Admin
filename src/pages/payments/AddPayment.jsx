@@ -1,30 +1,73 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Save, X, Banknote, QrCode } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { paymentsApi } from '../../services/api';
 import { getApiErrorMessage } from '../../services/apiClient';
 
 const AddPayment = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { id } = useParams();
+  const isEdit = Boolean(id);
+
+  const { data: paymentData } = useQuery({
+    queryKey: ['payments', id],
+    queryFn: () => paymentsApi.get(id),
+    enabled: isEdit,
+  });
+
+  React.useEffect(() => {
+    if (isEdit && paymentData) {
+      reset({
+        memberId: paymentData.memberId,
+        amount: paymentData.amount,
+        paymentDate: paymentData.date,
+        paymentMethod: paymentData.method || 'UPI',
+        transactionid: paymentData.transactionId,
+        remarks: paymentData.remarks,
+      });
+    }
+  }, [isEdit, paymentData, reset]);
+
   const createPayment = useMutation({
     mutationFn: paymentsApi.create,
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['payments'] }); queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] }); toast.success('Payment recorded successfully!'); navigate('/payments'); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['payments'] }); toast.success('Payment recorded successfully!'); navigate('/payments'); },
     onError: error => toast.error(getApiErrorMessage(error, 'Unable to record payment.')),
   });
 
-  const onSubmit = (data) => createPayment.mutate({ memberId: Number(data.memberId), amount: Number(data.amount), date: data.paymentDate, status: data.status || 'Completed' });
+  const updatePayment = useMutation({
+    mutationFn: (data) => paymentsApi.update(id, data),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['payments'] }); toast.success('Payment updated successfully!'); navigate('/payments'); },
+    onError: error => toast.error(getApiErrorMessage(error, 'Unable to update payment.')),
+  });
+
+  const onSubmit = (data) => {
+    const payload = {
+      memberId: Number(data.memberId),
+      amount: Number(data.amount),
+      paymentDate: data.paymentDate,
+      paymentMethod: data.paymentMethod,
+      transactionid: data.transactionid,
+      remarks: data.remarks,
+      paymentscreenshot: data.paymentscreenshot
+    };
+    if (isEdit) {
+      updatePayment.mutate(payload);
+    } else {
+      createPayment.mutate(payload);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Add Payment Record</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Record a new payment via UPI QR code.</p>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{isEdit ? 'Edit Payment Record' : 'Add Payment Record'}</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{isEdit ? 'Update an existing payment record.' : 'Record a new payment via UPI QR code.'}</p>
         </div>
         <div className="flex gap-2">
           <button 
@@ -85,6 +128,27 @@ const AddPayment = () => {
                   {errors.paymentDate && <p className="text-xs text-danger mt-1">{errors.paymentDate.message}</p>}
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Payment Method</label>
+                  <select 
+                    {...register('paymentMethod')} 
+                    className="input-field" 
+                  >
+                    <option value="UPI">UPI</option>
+                    <option value="cash">Cash</option>
+                    <option value="card">Card</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Transaction ID</label>
+                  <input 
+                    {...register('transactionid')} 
+                    className="input-field" 
+                    placeholder="e.g. UPI1234567890"
+                  />
+                </div>
+
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Remarks / Note</label>
                   <input 
@@ -100,7 +164,7 @@ const AddPayment = () => {
                     <input 
                       type="file"
                       accept="image/*"
-                      {...register('screenshot')} 
+                      {...register('paymentscreenshot')} 
                       className="hidden"
                       id="screenshot-upload"
                     />

@@ -4,6 +4,7 @@ import Trainer from '../models/Trainer';
 import Member from '../models/Member';
 import Attendance from '../models/Attendance';
 import MembershipPlan from '../models/MembershipPlan';
+import Payment from '../models/Payment';
 
 export const toCollection = (value, keys = []) => {
   if (Array.isArray(value)) return value;
@@ -22,8 +23,16 @@ const createMockResource = () => ({
 });
 
 export const authApi = {
-  login: async (payload) => ({ token: 'mock-token', user: { name: 'Admin' } }),
-  register: async (payload) => ({ token: 'mock-token', user: { name: 'Admin' } }),
+  login: async (_payload) => ({ token: 'mock-token', user: { name: 'Admin' } }),
+  register: async (_payload) => ({ token: 'mock-token', user: { name: 'Admin' } }),
+  getProfile: async () => {
+    const response = await apiClient.post('/auth/profile/get');
+    return response.data.data;
+  },
+  updateProfile: async (payload) => {
+    const response = await apiClient.post('/auth/profile/update', payload);
+    return response.data;
+  }
 };
 
 export const membersApi = {
@@ -106,7 +115,53 @@ export const trainersApi = {
     return response.data;
   },
 };
-export const paymentsApi = createMockResource();
+export const paymentsApi = {
+  list: async () => {
+    const response = await apiClient.post('/payments/get');
+    const data = response.data.data || [];
+    return data.map(item => new Payment(item));
+  },
+  get: async (id) => {
+    const response = await apiClient.post(`/payments/get/${id}`);
+    return new Payment(response.data.data);
+  },
+  create: async (payload) => {
+    const formData = new FormData();
+    Object.keys(payload).forEach(key => {
+      if (payload[key] !== undefined && payload[key] !== null) {
+        if (key === 'paymentscreenshot' && payload[key] instanceof FileList && payload[key].length > 0) {
+          formData.append(key, payload[key][0]);
+        } else if (key !== 'paymentscreenshot') {
+          formData.append(key, payload[key]);
+        }
+      }
+    });
+    const response = await apiClient.post('/payments/add', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+  update: async (id, payload) => {
+    const formData = new FormData();
+    Object.keys(payload).forEach(key => {
+      if (payload[key] !== undefined && payload[key] !== null) {
+        if (key === 'paymentscreenshot' && payload[key] instanceof FileList && payload[key].length > 0) {
+          formData.append(key, payload[key][0]);
+        } else if (key !== 'paymentscreenshot') {
+          formData.append(key, payload[key]);
+        }
+      }
+    });
+    const response = await apiClient.post(`/payments/edit/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+  remove: async (id) => {
+    const response = await apiClient.post(`/payments/delete/${id}`);
+    return response.data;
+  }
+};
 import Workout from '../models/Workout';
 
 export const workoutsApi = {
@@ -150,6 +205,21 @@ export const dietsApi = {
     return response.data;
   }
 };
+export const progressApi = {
+  overview: async (memberId) => {
+    const response = await apiClient.post(`/progress/overview/${memberId}`);
+    return response.data.data;
+  },
+  history: async (memberId, filter = '6months') => {
+    const response = await apiClient.post(`/progress/history/${memberId}?filter=${filter}`);
+    return response.data.data;
+  },
+  log: async (payload) => {
+    const response = await apiClient.post('/progress/add', payload);
+    return response.data;
+  }
+};
+
 export const plansApi = {
   list: async () => {
     const response = await apiClient.post('/plans/get');
@@ -171,10 +241,16 @@ export const attendanceApi = {
   },
 };
 
+export const reportsApi = {
+  getAnalytics: async (filter = '6months') => {
+    const response = await apiClient.post('/reports/analytics', { filter });
+    return response.data.data;
+  }
+};
+
 export const dashboardApi = {
-  stats: async () => ({
-    totalMembers: 1250,
-    activeMembers: 980,
-    membersInside: 45
-  }),
+  stats: async (filter = 'Last 6 Months') => {
+    const response = await apiClient.post('/dashboard/stats/get', { filter });
+    return response.data.data;
+  }
 };

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Download } from 'lucide-react';
+import { } from 'lucide-react';
 import { DataTable } from '../../components/tables/DataTable';
 import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -45,9 +45,6 @@ const AttendanceList = () => {
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Daily Attendance</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">Today's check-ins and check-outs.</p>
         </div>
-        <button className="btn-outline text-sm flex items-center gap-2">
-          <Download className="h-4 w-4" /> Export Today
-        </button>
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="card p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
         <div>

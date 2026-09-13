@@ -1,17 +1,50 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Save, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { authApi } from '../../services/api';
+import { getApiErrorMessage } from '../../services/apiClient';
 
 const Settings = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    toast.success('Settings updated successfully!');
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: authApi.getProfile,
+    onError: (err) => toast.error('Failed to load profile details')
+  });
+
+  useEffect(() => {
+    if (profile) {
+      reset({
+        name: profile.name,
+        gymname: profile.gymname,
+        email: profile.email,
+        mobilenumber: profile.mobilenumber,
+        address: profile.address
+      });
+    }
+  }, [profile, reset]);
+
+  const updateMutation = useMutation({
+    mutationFn: authApi.updateProfile,
+    onSuccess: () => {
+      toast.success('Settings updated successfully!');
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error, 'Failed to update settings'))
+  });
+
+  const handleSave = (data) => {
+    updateMutation.mutate(data);
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
     toast.success('Logged out successfully!');
     navigate('/login');
   };
@@ -28,51 +61,40 @@ const Settings = () => {
         </button>
       </div>
 
-      <form onSubmit={handleSave} className="card p-6 space-y-6">
+      <form onSubmit={handleSubmit(handleSave)} className="card p-6 space-y-6">
         <h3 className="text-lg font-bold text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-4">General Information</h3>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Gym Name</label>
-            <input type="text" className="input-field" defaultValue="FitLife Pro Gym" />
+          <div className="sm:col-span-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Admin Name</label>
+            <input type="text" {...register('name')} className="input-field" placeholder="Admin Name" />
           </div>
-          
+
+          <div className="sm:col-span-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Gym Name</label>
+            <input type="text" {...register('gymname')} className="input-field" placeholder="Gym Name" />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Contact Email</label>
-            <input type="email" className="input-field" defaultValue="contact@fitlifepro.com" />
+            <input type="email" {...register('email')} className="input-field" placeholder="contact@example.com" />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Contact Phone</label>
-            <input type="text" className="input-field" defaultValue="+91 98765 43210" />
+            <input type="text" {...register('mobilenumber')} className="input-field" placeholder="Mobile Number" />
           </div>
 
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Physical Address</label>
-            <textarea className="input-field min-h-[80px]" defaultValue="123 Fitness Street, Health Zone, Mumbai, 400001" />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Currency</label>
-            <select className="input-field">
-              <option value="INR">INR (₹)</option>
-              <option value="USD">USD ($)</option>
-              <option value="EUR">EUR (€)</option>
-            </select>
+            <textarea {...register('address')} className="input-field min-h-[80px]" placeholder="Full Address" />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Timezone</label>
-            <select className="input-field">
-              <option value="IST">Asia/Kolkata (IST)</option>
-              <option value="UTC">UTC</option>
-            </select>
-          </div>
         </div>
 
         <div className="pt-4 flex justify-end">
-          <button type="submit" className="btn-primary flex items-center gap-2">
-            <Save className="h-4 w-4" /> Save Changes
+          <button type="submit" disabled={updateMutation.isPending} className="btn-primary flex items-center gap-2">
+            <Save className="h-4 w-4" /> {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </form>

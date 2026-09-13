@@ -82,11 +82,6 @@ export function DataTable({ columns, data, searchPlaceholder = "Search..." }) {
             placeholder={searchPlaceholder}
           />
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button className="btn-outline text-sm h-10 px-3 flex items-center gap-2 flex-1 sm:flex-none justify-center">
-            <Filter className="h-4 w-4" /> Filters
-          </button>
-        </div>
       </div>
 
       {/* Table Content */}

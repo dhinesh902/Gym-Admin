@@ -22,6 +22,7 @@ import Notifications from './pages/notifications/Notifications';
 import Settings from './pages/settings/Settings';
 import PaymentsList from './pages/payments/PaymentsList';
 import AddPayment from './pages/payments/AddPayment';
+import PaymentDetail from './pages/payments/PaymentDetail';
 import WorkoutsList from './pages/workouts/WorkoutsList';
 import AddWorkout from './pages/workouts/AddWorkout';
 import DietList from './pages/diet/DietList';
@@ -64,6 +65,8 @@ function App() {
             <Route path="/diet/edit/:id" element={<AddDiet />} />
             <Route path="/payments" element={<PaymentsList />} />
             <Route path="/payments/add" element={<AddPayment />} />
+            <Route path="/payments/edit/:id" element={<AddPayment />} />
+            <Route path="/payments/:id" element={<PaymentDetail />} />
             <Route path="/progress" element={<ProgressTracking />} />
             {/* Admin Modules */}
             <Route path="/reports" element={<Reports />} />
