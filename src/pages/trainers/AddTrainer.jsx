@@ -43,7 +43,7 @@ const AddTrainer = () => {
 
   const profilePhotoObj = watch('profilephoto');
   const existingPhoto = isEdit && trainer?.profilephoto;
-  
+
   let photoPreview = null;
   if (profilePhotoObj && typeof profilePhotoObj !== 'string' && profilePhotoObj.length > 0) {
     try {
@@ -57,22 +57,22 @@ const AddTrainer = () => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{isEdit ? 'Edit Trainer' : 'Add New Trainer'}</h2>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{isEdit ? 'Edit Trainer' : 'Add New Trainer'}</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">{isEdit ? 'Update trainer details.' : 'Register a new gym trainer or coach.'}</p>
         </div>
         <div className="flex gap-2">
-          <button 
+          <button
             type="button"
             onClick={() => navigate('/trainers')}
             className="btn-outline text-sm flex items-center gap-2"
           >
             <X className="h-4 w-4" /> Cancel
           </button>
-          <button 
-                      type="submit"
+          <button
+            type="submit"
             form="add-trainer-form"
             disabled={saveTrainer.isPending || isLoadingTrainer}
             className="btn-primary text-sm flex items-center gap-2"
@@ -83,7 +83,7 @@ const AddTrainer = () => {
       </div>
 
       <form id="add-trainer-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        
+
         {/* Section 1: Personal Information */}
         <div className="card overflow-hidden">
           <div className="bg-slate-50 dark:bg-slate-800/50 p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
@@ -115,20 +115,20 @@ const AddTrainer = () => {
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Full Name *</label>
-                  <input 
-                    {...register('fullname', { required: 'Full name is required' })} 
-                    className="input-field" 
+                  <input
+                    {...register('fullname', { required: 'Full name is required' })}
+                    className="input-field"
                     placeholder="e.g. Mike Johnson"
                   />
                   {errors.fullname && <p className="text-xs text-danger mt-1">{errors.fullname.message}</p>}
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email Address *</label>
-                  <input 
+                  <input
                     type="email"
-                    {...register('email', { required: 'Email is required' })} 
-                    className="input-field" 
+                    {...register('email', { required: 'Email is required' })}
+                    className="input-field"
                     placeholder="mike@example.com"
                   />
                 </div>
@@ -146,19 +146,19 @@ const AddTrainer = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Phone Number *</label>
-                  <input 
-                    {...register('phone', { required: 'Phone is required' })} 
-                    className="input-field" 
+                  <input
+                    {...register('phone', { required: 'Phone is required' })}
+                    className="input-field"
                     placeholder="+91 9876543210"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date of Birth</label>
-                  <input 
+                  <input
                     type="date"
-                    {...register('dateofbirth')} 
-                    className="input-field text-slate-500" 
+                    {...register('dateofbirth')}
+                    className="input-field text-slate-500"
                   />
                 </div>
               </div>
@@ -177,11 +177,13 @@ const AddTrainer = () => {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Specialty *</label>
               <select {...register('speciality', { required: 'Specialty is required' })} className="input-field">
                 <option value="">Select Specialty</option>
+                <option value="Strength & Conditioning">General Fitness</option>
                 <option value="Strength & Conditioning">Strength & Conditioning</option>
                 <option value="Yoga & Flexibility">Yoga & Flexibility</option>
                 <option value="CrossFit">CrossFit</option>
                 <option value="Cardio & HIIT">Cardio & HIIT</option>
                 <option value="General Fitness">General Fitness</option>
+                <option value="Weight Loss & Fat Loss">Weight Loss & Fat Loss</option>
               </select>
             </div>
             <div>
