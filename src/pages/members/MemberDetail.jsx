@@ -4,12 +4,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { membersApi } from '../../services/api';
-import apiClient, { getApiErrorMessage } from '../../services/apiClient';
+import apiClient, { getApiErrorMessage, IMAGE_URL } from '../../services/apiClient';
 
 const getImageUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  const baseUrl = import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api', '') : 'http://localhost:3000';
+  const baseUrl = IMAGE_URL;
   return `${baseUrl}${path}`;
 };
 

@@ -22,9 +22,13 @@ const AddMembership = () => {
 
   const onSubmit = (data) => createPlan.mutate({ 
     name: data.planName, 
-    durationInMonths: Number(data.duration), 
+    duration: Number(data.duration), 
+    durationtype: data.durationtype,
     price: Number(data.price), 
-    description: data.description 
+    registrationfee: Number(data.registrationfee),
+    offerprice: Number(data.offerprice),
+    description: data.description,
+    status: data.status
   });
 
   return (
@@ -46,8 +50,9 @@ const AddMembership = () => {
             type="submit"
             form="add-membership-form"
             className="btn-primary text-sm flex items-center gap-2"
+            disabled={createPlan.isPending}
           >
-            <Save className="h-4 w-4" /> Save Plan
+            <Save className="h-4 w-4" /> {createPlan.isPending ? 'Saving...' : 'Save Plan'}
           </button>
         </div>
       </div>
@@ -63,40 +68,72 @@ const AddMembership = () => {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Plan Name *</label>
               <input 
                 {...register('planName', { required: 'Plan name is required' })} 
-                className="input-field" 
+                className="input-field w-full" 
                 placeholder="e.g. Yearly VIP"
               />
               {errors.planName && <p className="text-xs text-danger mt-1">{errors.planName.message}</p>}
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Duration (Months) *</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Duration *</label>
               <input 
                 type="number"
                 {...register('duration', { required: 'Duration is required' })} 
-                className="input-field" 
-                placeholder="12"
+                className="input-field w-full" 
+                placeholder="6"
               />
               {errors.duration && <p className="text-xs text-danger mt-1">{errors.duration.message}</p>}
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Duration Type *</label>
+              <select {...register('durationtype', { required: 'Duration type is required' })} className="input-field w-full" defaultValue="Months">
+                <option value="Days">Days</option>
+                <option value="Months">Months</option>
+                <option value="Years">Years</option>
+              </select>
+              {errors.durationtype && <p className="text-xs text-danger mt-1">{errors.durationtype.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
+              <select {...register('status')} className="input-field w-full" defaultValue="active">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            
+            <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Price (₹) *</label>
               <input 
                 type="number"
                 {...register('price', { required: 'Price is required' })} 
-                className="input-field" 
-                placeholder="12000"
+                className="input-field w-full" 
+                placeholder="5000"
               />
               {errors.price && <p className="text-xs text-danger mt-1">{errors.price.message}</p>}
             </div>
-            
+
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
-              <select {...register('status')} className="input-field">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Registration Fee (₹) *</label>
+              <input 
+                type="number"
+                {...register('registrationfee', { required: 'Registration fee is required' })} 
+                className="input-field w-full" 
+                placeholder="500"
+              />
+              {errors.registrationfee && <p className="text-xs text-danger mt-1">{errors.registrationfee.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Offer Price (₹) *</label>
+              <input 
+                type="number"
+                {...register('offerprice', { required: 'Offer price is required' })} 
+                className="input-field w-full" 
+                placeholder="4500"
+              />
+              {errors.offerprice && <p className="text-xs text-danger mt-1">{errors.offerprice.message}</p>}
             </div>
           </div>
         </div>
@@ -104,23 +141,15 @@ const AddMembership = () => {
         <div className="card overflow-hidden">
           <div className="bg-slate-50 dark:bg-slate-800/50 p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
             <AlignLeft className="h-5 w-5 text-secondary" />
-            <h3 className="font-bold text-slate-800 dark:text-white">Description & Features</h3>
+            <h3 className="font-bold text-slate-800 dark:text-white">Description</h3>
           </div>
-          <div className="p-6 space-y-6">
+          <div className="p-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
               <textarea 
                 {...register('description')} 
-                className="input-field min-h-[80px]" 
+                className="input-field w-full min-h-[120px]" 
                 placeholder="Brief description of the plan..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Features (Comma separated)</label>
-              <textarea 
-                {...register('features')} 
-                className="input-field min-h-[80px]" 
-                placeholder="e.g. Free Personal Training, Diet Plan, Locker Access"
               />
             </div>
           </div>

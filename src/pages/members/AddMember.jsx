@@ -5,7 +5,7 @@ import { Save, X, User, Activity, CreditCard, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { membersApi, plansApi, trainersApi, toCollection } from '../../services/api';
-import { getApiErrorMessage } from '../../services/apiClient';
+import { getApiErrorMessage, IMAGE_URL } from '../../services/apiClient';
 
 const AddMember = () => {
   const navigate = useNavigate();
@@ -84,12 +84,12 @@ const AddMember = () => {
   const getImageUrl = (path) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    return `http://localhost:3000${path.startsWith('/') ? path : `/${path}`}`;
+    return `${IMAGE_URL}${path.startsWith('/') ? path : `/${path}`}`;
   };
 
   const profilePhotoObj = watch('profilephoto');
   const existingPhoto = isEdit && memberData?.profilephoto;
-  
+
   let photoPreview = null;
   if (profilePhotoObj && typeof profilePhotoObj !== 'string' && profilePhotoObj.length > 0) {
     try {

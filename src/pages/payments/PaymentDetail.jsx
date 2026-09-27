@@ -3,11 +3,12 @@ import { ArrowLeft, User, Calendar, CreditCard, Banknote, QrCode, ClipboardList,
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import { paymentsApi } from '../../services/api';
+import { IMAGE_URL } from '../../services/apiClient';
 
 const PaymentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const { data: payment, isLoading, isError } = useQuery({
     queryKey: ['payment', id],
     queryFn: () => paymentsApi.get(id),
@@ -113,9 +114,9 @@ const PaymentDetail = () => {
             <h4 className="font-semibold text-slate-800 dark:text-white mb-4">Payment Receipt</h4>
             {payment.screenshot ? (
               <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm">
-                <img 
-                  src={payment.screenshot.startsWith('http') ? payment.screenshot : `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:3000'}${payment.screenshot}`} 
-                  alt="Payment Receipt" 
+                <img
+                  src={payment.screenshot.startsWith('http') ? payment.screenshot : `${IMAGE_URL}${payment.screenshot}`}
+                  alt="Payment Receipt"
                   className="w-full h-auto object-cover max-h-[300px]"
                   onError={(e) => { e.target.src = 'https://placehold.co/400x300/f8fafc/94a3b8?text=Receipt+Not+Found'; }}
                 />

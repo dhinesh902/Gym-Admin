@@ -4,14 +4,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { trainersApi } from '../../services/api';
-import { getApiErrorMessage } from '../../services/apiClient';
+import { getApiErrorMessage, IMAGE_URL } from '../../services/apiClient';
 
 const formatStatus = (status) => status === 'active' ? 'Active' : 'Inactive';
 
 const getImageUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  const baseUrl = import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api', '') : 'http://localhost:3000';
+  const baseUrl = IMAGE_URL;
   return `${baseUrl}${path}`;
 };
 const TrainerDetail = () => {
@@ -92,7 +92,7 @@ const TrainerDetail = () => {
               <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-white"><Icon className="h-5 w-5 text-primary" />{label}</div>
               <span className="text-lg font-bold text-slate-700 dark:text-slate-200">{trainer[key]?.length ?? 0}</span>
             </div>
-            
+
             {key === 'Members' && trainer[key]?.length > 0 ? (
               <div className="mt-4 space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                 {trainer[key].map(member => (

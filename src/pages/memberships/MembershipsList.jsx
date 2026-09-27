@@ -12,7 +12,7 @@ const MembershipsList = () => {
   const [editingPlan, setEditingPlan] = useState(null);
 
   const fetchPlans = async () => {
-    const response = await apiClient.post('/plans/get');
+    const response = await apiClient.get('/plans/get');
     return response.data.data || [];
   };
 
@@ -59,25 +59,39 @@ const MembershipsList = () => {
       header: 'Plan Name',
       cell: info => <div className="font-bold text-slate-800 dark:text-slate-200">{info.getValue()}</div>,
     },
-    { accessorKey: 'durationInMonths', header: 'Duration (Months)' },
+    {
+      id: 'duration',
+      header: 'Duration',
+      cell: info => {
+        const { duration, durationtype, durationInMonths } = info.row.original;
+        const num = duration || durationInMonths || '-';
+        const type = durationtype || (durationInMonths ? 'Months' : '');
+        return `${num} ${type}`.trim();
+      }
+    },
     {
       accessorKey: 'price',
       header: 'Price (₹)',
       cell: info => <div className="font-bold text-primary">{info.getValue()}</div>,
     },
+    {
+      accessorKey: 'offerprice',
+      header: 'Offer Price (₹)',
+      cell: info => <div className="font-bold text-success">{info.getValue() || '-'}</div>,
+    },
     { accessorKey: 'description', header: 'Description' },
-    // {
-    //   accessorKey: 'status',
-    //   header: 'Status',
-    //   cell: info => {
-    //     const status = info.getValue() || 'Active';
-    //     return (
-    //       <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${status === 'Active' ? 'bg-accent/10 text-accent' : 'bg-slate-100 text-slate-500'}`}>
-    //         {status}
-    //       </span>
-    //     );
-    //   },
-    // },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: info => {
+        const status = info.getValue() || 'active';
+        return (
+          <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${status.toLowerCase() === 'active' ? 'bg-accent/10 text-accent' : 'bg-slate-100 text-slate-500'}`}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </span>
+        );
+      },
+    },
     {
       id: 'actions',
       header: 'Actions',
@@ -137,6 +151,10 @@ const MembershipsList = () => {
                         name: document.getElementById('edit-name').value,
                         price: Number(document.getElementById('edit-price').value),
                         duration: Number(document.getElementById('edit-duration').value),
+                        durationtype: document.getElementById('edit-durationtype').value,
+                        registrationfee: Number(document.getElementById('edit-registrationfee').value),
+                        offerprice: Number(document.getElementById('edit-offerprice').value),
+                        status: document.getElementById('edit-status').value,
                         description: document.getElementById('edit-description').value,
                       }
                     })
@@ -164,12 +182,35 @@ const MembershipsList = () => {
                     <input type="text" className="input-field w-full" defaultValue={editingPlan.name} id="edit-name" />
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Duration *</label>
+                    <input type="number" className="input-field w-full" defaultValue={editingPlan.duration || editingPlan.durationInMonths} id="edit-duration" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Duration Type *</label>
+                    <select className="input-field w-full" defaultValue={editingPlan.durationtype || 'Months'} id="edit-durationtype">
+                      <option value="Days">Days</option>
+                      <option value="Months">Months</option>
+                      <option value="Years">Years</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
+                    <select className="input-field w-full" defaultValue={editingPlan.status || 'active'} id="edit-status">
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Price (₹) *</label>
                     <input type="number" className="input-field w-full" defaultValue={editingPlan.price} id="edit-price" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Duration (Months) *</label>
-                    <input type="number" className="input-field w-full" defaultValue={editingPlan.durationInMonths || editingPlan.duration} id="edit-duration" />
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Registration Fee (₹) *</label>
+                    <input type="number" className="input-field w-full" defaultValue={editingPlan.registrationfee} id="edit-registrationfee" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Offer Price (₹) *</label>
+                    <input type="number" className="input-field w-full" defaultValue={editingPlan.offerprice} id="edit-offerprice" />
                   </div>
                 </div>
               </div>
