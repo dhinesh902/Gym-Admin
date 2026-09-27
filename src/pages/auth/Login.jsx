@@ -68,7 +68,7 @@ const Login = () => {
                   {...register('email', { required: 'Email is required' })}
                   className="w-full pl-10 pr-4 h-12 bg-[#1a1d24] border border-[#1a1d24] focus:border-[#FBBF24] focus:bg-[#1a1d24] rounded-lg outline-none transition-colors text-white placeholder:text-gray-500 text-sm focus:ring-1 focus:ring-[#FBBF24]"
                   placeholder="Email / Username"
-                  defaultValue="admin@gym.com"
+                  defaultValue="admin@gmail.com"
                 />
               </div>
               {errors.email && <p className="text-xs text-red-500 mt-1 ml-1">{errors.email.message}</p>}
@@ -85,7 +85,7 @@ const Login = () => {
                   {...register('password', { required: 'Password is required' })}
                   className="w-full pl-10 pr-10 h-12 bg-[#1a1d24] border border-[#1a1d24] focus:border-[#FBBF24] focus:bg-[#1a1d24] rounded-lg outline-none transition-colors text-white placeholder:text-gray-500 text-sm focus:ring-1 focus:ring-[#FBBF24]"
                   placeholder="Password"
-                  defaultValue="password123"
+                  defaultValue="Admin@4321"
                 />
                 <button
                   type="button"
