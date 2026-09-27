@@ -171,11 +171,35 @@ export const workoutsApi = {
     return data.map(item => new Workout(item));
   },
   create: async (payload) => {
-    const response = await apiClient.post('/workouts/add', payload);
+    const formData = new FormData();
+    Object.keys(payload).forEach(key => {
+      if (payload[key] !== undefined && payload[key] !== null && payload[key] !== '') {
+        if (key === 'workoutimage' && payload[key] instanceof FileList && payload[key].length > 0) {
+          formData.append(key, payload[key][0]);
+        } else if (key !== 'workoutimage') {
+          formData.append(key, payload[key]);
+        }
+      }
+    });
+    const response = await apiClient.post('/workouts/add', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return response.data;
   },
   update: async ({ id, ...payload }) => {
-    const response = await apiClient.post(`/workouts/edit/${id}`, payload);
+    const formData = new FormData();
+    Object.keys(payload).forEach(key => {
+      if (payload[key] !== undefined && payload[key] !== null && payload[key] !== '') {
+        if (key === 'workoutimage' && payload[key] instanceof FileList && payload[key].length > 0) {
+          formData.append(key, payload[key][0]);
+        } else if (key !== 'workoutimage') {
+          formData.append(key, payload[key]);
+        }
+      }
+    });
+    const response = await apiClient.post(`/workouts/edit/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return response.data;
   },
   remove: async (id) => {
@@ -187,10 +211,13 @@ export const workoutsApi = {
 import Diet from '../models/Diet';
 
 export const dietsApi = {
-  list: async () => {
-    const response = await apiClient.post('/diets/get');
-    const data = response.data.data || [];
-    return data.map(item => new Diet(item));
+  list: async (payload = { session: 'breakfast' }) => {
+    const response = await apiClient.post('/diets/get', payload);
+    const data = response.data.data || { counts: {}, records: [] };
+    return {
+      counts: data.counts || {},
+      records: (data.records || []).map(item => new Diet(item))
+    };
   },
   create: async (payload) => {
     const response = await apiClient.post('/diets/add', payload);
@@ -230,15 +257,21 @@ export const plansApi = {
 export const subscriptionsApi = createMockResource();
 
 export const attendanceApi = {
-  list: async () => {
-    const response = await apiClient.post('/attendance/get');
-    const data = response.data.data || [];
-    return data.map(item => new Attendance(item));
+  getAll: async (payload) => {
+    const response = await apiClient.post('/attendance/getAllAttendance', payload);
+    return response.data.data;
   },
   checkIn: async (payload) => {
     const response = await apiClient.post('/attendance/check-in/add', payload);
     return response.data;
   },
+};
+
+export const trainerAttendanceApi = {
+  getAll: async (payload) => {
+    const response = await apiClient.post('/trainer-attendance/getAllAttendance', payload);
+    return response.data.data;
+  }
 };
 
 export const reportsApi = {

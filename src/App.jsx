@@ -2,33 +2,34 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
+import { lazy } from 'react';
+
 // Layouts
 import MainLayout from './components/layout/MainLayout';
 // Pages
-import Dashboard from './pages/dashboard/Dashboard';
-import MembersList from './pages/members/MembersList';
-import AddMember from './pages/members/AddMember';
-import MemberDetail from './pages/members/MemberDetail';
-import Login from './pages/auth/Login';
-import NotFound from './pages/auth/NotFound';
-import TrainersList from './pages/trainers/TrainersList';
-import AddTrainer from './pages/trainers/AddTrainer';
-import TrainerDetail from './pages/trainers/TrainerDetail';
-import MembershipsList from './pages/memberships/MembershipsList';
-import AddMembership from './pages/memberships/AddMembership';
-import AttendanceList from './pages/attendance/AttendanceList';
-import Reports from './pages/reports/Reports';
-import Notifications from './pages/notifications/Notifications';
-import Settings from './pages/settings/Settings';
-import PaymentsList from './pages/payments/PaymentsList';
-import AddPayment from './pages/payments/AddPayment';
-import PaymentDetail from './pages/payments/PaymentDetail';
-import WorkoutsList from './pages/workouts/WorkoutsList';
-import AddWorkout from './pages/workouts/AddWorkout';
-import DietList from './pages/diet/DietList';
-import AddDiet from './pages/diet/AddDiet';
-
-import ProgressTracking from './pages/progress/ProgressTracking';
+const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'));
+const MembersList = lazy(() => import('./pages/members/MembersList'));
+const AddMember = lazy(() => import('./pages/members/AddMember'));
+const MemberDetail = lazy(() => import('./pages/members/MemberDetail'));
+const Login = lazy(() => import('./pages/auth/Login'));
+const NotFound = lazy(() => import('./pages/auth/NotFound'));
+const TrainersList = lazy(() => import('./pages/trainers/TrainersList'));
+const AddTrainer = lazy(() => import('./pages/trainers/AddTrainer'));
+const TrainerDetail = lazy(() => import('./pages/trainers/TrainerDetail'));
+const MembershipsList = lazy(() => import('./pages/memberships/MembershipsList'));
+const AddMembership = lazy(() => import('./pages/memberships/AddMembership'));
+const AttendanceList = lazy(() => import('./pages/attendance/AttendanceList'));
+const Reports = lazy(() => import('./pages/reports/Reports'));
+const Notifications = lazy(() => import('./pages/notifications/Notifications'));
+const Settings = lazy(() => import('./pages/settings/Settings'));
+const PaymentsList = lazy(() => import('./pages/payments/PaymentsList'));
+const AddPayment = lazy(() => import('./pages/payments/AddPayment'));
+const PaymentDetail = lazy(() => import('./pages/payments/PaymentDetail'));
+const WorkoutsList = lazy(() => import('./pages/workouts/WorkoutsList'));
+const AddWorkout = lazy(() => import('./pages/workouts/AddWorkout'));
+const DietList = lazy(() => import('./pages/diet/DietList'));
+const AddDiet = lazy(() => import('./pages/diet/AddDiet'));
+const ProgressTracking = lazy(() => import('./pages/progress/ProgressTracking'));
 
 // Placeholders for other routes (to be replaced progressively)
 const Placeholder = ({ title }) => <div className="p-8"><h1 className="text-2xl font-bold">{title}</h1><p className="text-slate-500 mt-2">This module is under construction.</p></div>;

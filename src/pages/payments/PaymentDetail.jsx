@@ -1,3 +1,4 @@
+import Loader from '../../components/ui/Loader.jsx';
 import React from 'react';
 import { ArrowLeft, User, Calendar, CreditCard, Banknote, QrCode, ClipboardList, CheckCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -14,7 +15,7 @@ const PaymentDetail = () => {
     queryFn: () => paymentsApi.get(id),
   });
 
-  if (isLoading) return <p className="text-sm text-slate-500">Loading payment details...</p>;
+  if (isLoading) return <div className="flex justify-center p-8 w-full"><Loader /></div>;
   if (isError || !payment) return <p className="text-sm text-danger">Unable to load payment details.</p>;
 
   // Fallback if full member object exists from nested query or just ID mapping

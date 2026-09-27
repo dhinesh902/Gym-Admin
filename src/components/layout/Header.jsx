@@ -1,49 +1,62 @@
 import React from 'react';
-import { Search, Bell, Menu, Sun, Moon, LogOut } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { Search, Bell, Menu, LogOut, Activity } from 'lucide-react';
 
 const Header = ({ toggleSidebar }) => {
-  const location = useLocation();
-  const pathName = location.pathname.split('/')[1];
-  const title = pathName ? pathName.charAt(0).toUpperCase() + pathName.slice(1) : 'Dashboard';
-
   return (
-    <header className="h-16 bg-surface/80 dark:bg-surface-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 z-10 sticky top-0">
-      <div className="flex items-center flex-1">
-        <button 
+    <header className="h-20 bg-[#0a0a0a]/80 backdrop-blur-xl flex items-center justify-between px-4 sm:px-8 z-10 sticky top-0 border-b border-white/5 shadow-sm">
+      <div className="flex items-center">
+        <button
           onClick={toggleSidebar}
-          className="p-2 mr-3 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+          className="p-2.5 mr-4 rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 lg:hidden transition-colors border border-white/5"
         >
           <Menu className="h-5 w-5" />
         </button>
-        
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white capitalize">{title}</h1>
-          <div className="hidden sm:flex text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Admin Panel <span className="mx-2">•</span> {title}
-          </div>
+
+        {/* Hidden on small screens, shown on large */}
+        <div className="hidden md:flex flex-col relative w-auto">
+          <h1 className="text-lg font-bold text-white tracking-wide flex items-center gap-2.5">
+            Overview
+            <span className="px-2 py-0.5 rounded text-[10px] bg-[#FBBF24]/10 text-[#FBBF24] border border-[#FBBF24]/20 uppercase tracking-wider font-black flex items-center gap-1.5 shadow-[0_0_10px_rgba(251,191,36,0.1)]">
+              <Activity className="h-3 w-3" /> Live
+            </span>
+          </h1>
+          <p className="text-[11px] text-gray-400 font-medium tracking-wide mt-0.5 uppercase">Welcome back, Admin</p>
         </div>
       </div>
 
-      <div className="flex items-center space-x-2 sm:space-x-4">
+      <div className="flex items-center gap-4 sm:gap-6">
         {/* Notifications */}
-        <button className="relative p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-danger ring-2 ring-surface dark:ring-surface-dark"></span>
+        <button className="relative p-2.5 rounded-xl bg-[#16181d] text-gray-400 hover:text-white hover:bg-white/10 transition-colors border border-white/5 shadow-sm group">
+          <Bell className="h-5 w-5 group-hover:scale-110 transition-transform" />
+          <span className="absolute top-2 right-2.5 block h-2 w-2 rounded-full bg-red-500 border border-[#0a0a0a] shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
         </button>
 
-        {/* Profile Dropdown */}
-        <div className="relative flex items-center ml-2 border-l border-slate-200 dark:border-slate-700 pl-4">
-          <button className="flex items-center space-x-2 focus:outline-none">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white font-bold text-sm">
-              AD
+        <div className="h-7 w-px bg-white/10 hidden sm:block"></div>
+
+        {/* Profile */}
+        <div className="flex items-center space-x-3 group cursor-pointer">
+          <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-[#FBBF24] to-yellow-600 p-0.5 shadow-[0_0_15px_rgba(251,191,36,0.2)]">
+            <div className="h-full w-full rounded-full overflow-hidden bg-[#16181d] border-2 border-[#16181d]">
+              <img src="https://ui-avatars.com/api/?name=Admin&background=1a1d24&color=FBBF24" alt="Admin" className="w-full h-full object-cover" />
             </div>
-            <div className="hidden sm:block text-left">
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Admin User</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Owner</p>
-            </div>
-          </button>
+          </div>
+          <div className="hidden sm:flex flex-col text-left">
+            <p className="text-sm font-bold text-gray-200 group-hover:text-[#FBBF24] transition-colors leading-tight">Admin</p>
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">Super User</p>
+          </div>
         </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={() => {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+          }}
+          className="flex items-center justify-center h-10 w-10 sm:w-auto sm:px-4 sm:h-10 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl text-[11px] font-bold transition-all border border-red-500/20 shadow-sm group ml-1"
+        >
+          <LogOut className="h-4 w-4" />
+          <span className="hidden sm:inline uppercase tracking-wider ml-2">Logout</span>
+        </button>
       </div>
     </header>
   );

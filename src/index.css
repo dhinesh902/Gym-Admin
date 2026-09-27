@@ -6,9 +6,9 @@
 
 @layer base {
   html {
-    @apply antialiased text-slate-800 bg-background dark:bg-dark dark:text-slate-100;
+    @apply antialiased bg-[#0a0a0a] text-white;
   }
-  
+
   body {
     @apply min-h-screen overflow-x-hidden;
   }
@@ -16,31 +16,40 @@
 
 @layer components {
   .glass {
-    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-white/20 dark:border-slate-800/50 shadow-sm;
+    @apply bg-[#16181d]/80 backdrop-blur-md border border-gray-800 shadow-sm;
   }
-  
+
   .card {
-    @apply bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-slate-100 dark:border-slate-800;
+    @apply bg-[#16181d] rounded-xl shadow-lg border border-gray-800/60 transition-colors;
   }
 
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center px-4 py-2.5 rounded-lg font-bold transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
   }
-  
+
   .btn-primary {
-    @apply btn bg-primary text-white hover:bg-orange-600 shadow-md shadow-primary/20;
+    @apply btn bg-gradient-to-r from-[#FBBF24] to-[#F59E0B] hover:from-[#F59E0B] hover:to-[#D97706] text-black shadow-[0_4px_14px_0_rgba(251,191,36,0.2)] hover:shadow-[0_6px_20px_rgba(251,191,36,0.3)];
   }
 
   .btn-secondary {
-    @apply btn bg-secondary text-white hover:bg-orange-500 shadow-md shadow-secondary/20;
+    @apply btn bg-[#242013] border border-[#3b3117] text-[#FBBF24] hover:bg-[#FBBF24] hover:text-black;
   }
 
   .btn-outline {
-    @apply btn border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800;
+    @apply btn border border-gray-800 text-gray-300 hover:bg-gray-800 hover:text-white;
   }
 
   .input-field {
-    @apply w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors;
+    @apply w-full px-4 py-3 rounded-xl border border-gray-800 bg-[#1a1d24]/60 backdrop-blur-md text-white placeholder:text-gray-500 focus:outline-none focus:border-[#FBBF24] focus:ring-1 focus:ring-[#FBBF24] transition-all shadow-inner;
+  }
+
+  .input-field:-webkit-autofill,
+  .input-field:-webkit-autofill:hover, 
+  .input-field:-webkit-autofill:focus, 
+  .input-field:-webkit-autofill:active{
+      -webkit-box-shadow: 0 0 0 30px #1a1d24 inset !important;
+      -webkit-text-fill-color: white !important;
+      transition: background-color 5000s ease-in-out 0s;
   }
 }
 
@@ -49,12 +58,15 @@
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   @apply bg-slate-300 dark:bg-slate-700 rounded-full;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-slate-400 dark:bg-slate-600;
 }

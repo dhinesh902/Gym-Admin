@@ -40,6 +40,11 @@ const AddWorkout = () => {
       difficultlevel: data.difficultlevel,
       duration: Number(data.duration),
       description: data.description,
+      workoutimage: data.workoutimage,
+      sets: Number(data.sets) || 0,
+      reps: Number(data.reps) || 0,
+      weight: Number(data.weight) || 0,
+      resttime: Number(data.resttime) || 0,
     });
   };
 
@@ -115,6 +120,56 @@ const AddWorkout = () => {
                 placeholder="45"
               />
               {errors.duration && <p className="text-xs text-danger mt-1">{errors.duration.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Workout Image</label>
+              <input 
+                type="file"
+                accept="image/*"
+                {...register('workoutimage')} 
+                className="input-field" 
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Sets</label>
+              <input 
+                type="number"
+                {...register('sets')} 
+                className="input-field" 
+                placeholder="3"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Reps</label>
+              <input 
+                type="number"
+                {...register('reps')} 
+                className="input-field" 
+                placeholder="10"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Weight (kg)</label>
+              <input 
+                type="number"
+                {...register('weight')} 
+                className="input-field" 
+                placeholder="20"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Rest Time (seconds)</label>
+              <input 
+                type="number"
+                {...register('resttime')} 
+                className="input-field" 
+                placeholder="60"
+              />
             </div>
           </div>
         </div>
