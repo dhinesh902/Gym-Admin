@@ -62,7 +62,7 @@ const TrainersList = () => {
       {isError && <p className="text-sm text-red-500">Unable to load trainers.</p>}
 
       {/* Grid Layout replacing DataTable */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-6 md:gap-8 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-6 md:gap-8 mt-4">
         {filteredTrainers.map(trainer => (
           <div
             key={trainer.id}

@@ -93,7 +93,7 @@ const MembershipsList = () => {
         {isError && <p className="text-sm text-red-500">Unable to load plans.</p>}
 
         {/* Grid Layout replacing DataTable */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 mt-6">
           {filteredPlans.map((plan) => {
             const num = plan.duration || plan.durationInMonths || '-';
             const type = plan.durationtype || (plan.durationInMonths ? 'Months' : '');

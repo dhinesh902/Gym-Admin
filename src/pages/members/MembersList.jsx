@@ -71,7 +71,7 @@ const MembersList = () => {
       {isError && <p className="text-sm text-red-500">Unable to load members.</p>}
 
       {/* Grid Layout replacing DataTable */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-6 md:gap-8 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-6 md:gap-8 mt-4">
         {filteredMembers.map((member, index) => {
           const status = member.status || 'Active';
           const isExpired = status.toLowerCase() === 'expired';
